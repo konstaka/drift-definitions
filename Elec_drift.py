@@ -44,6 +44,23 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 
 
+
+def createBestKNNDetector(data,labels,maxK):
+    k_range = range(4, maxK)
+
+    k_scores = np.zeros(maxK)
+    X_train, X_test, y_train, y_test = train_test_split(data, labels, train_size=0.30, shuffle=False)
+
+
+    for k in k_range:
+        model = KNeighborsClassifier(n_neighbors=k)
+        k_scores[k]= cross_val_score(model, data, labels, cv=10).mean()
+        print(k_scores[k])
+
+    optimizedNeighbors= k_scores.argmax()
+    print("optimized neighbors for this is: " + str(optimizedNeighbors))
+    return KNeighborsClassifier(n_neighbors=optimizedNeighbors)
+
 #preprocessing.
 #LabelEncoder
 #iloc and sclice...
@@ -73,21 +90,23 @@ def divideIntoBatchesOfX(array,X):
     else:
         return np.array_split(array,ceil(array.size/X))
 
+def getTestBatches(link, data, labels):
+    changedFrame = np.delete(data[-30208:],np.array([0,1,7]),1)
+    dat = divideIntoBatchesOfX(changedFrame,365)
+    lab = divideIntoBatchesOfX(labels[-30208:],365)
+    return dat,lab
+
 def getTrainSet(link,data,labels):
-	if link =="electricity_dataset.csv":
-		A=np.delete(data[:15104],np.array([0,1,7]),1)
-        return A,labels[:15104]
+	if (link =="electricity_dataset.csv"):
+		return np.delete(data[:15104],np.array([0,1,7]),1),labels
+
     # match link:
     #     case "electricity_dataset.csv":
     #         A=np.delete(data[:15104],np.array([0,1,7]),1)
     #         return A,labels[:15104]
             #divideIntoBatchesOfX(data[:15104],365), divideIntoBatchesOfX(labels[:15104],365)
 
-
-def getTestBatches(link, data, labels):
-	if link =="electricity_dataset.csv":
-		A=np.delete(data[-30208:],np.array([0,1,7]),1)
-        return divideIntoBatchesOfX(A,365), divideIntoBatchesOfX(labels[-30208:],365)
+    
 
     # match link:
     #     case "electricity_dataset.csv":
